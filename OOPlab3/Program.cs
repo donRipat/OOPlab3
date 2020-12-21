@@ -36,7 +36,7 @@ namespace OOPlab3
         //  "Draw"
         public override void Draw()
         {
-            Console.WriteLine(string.Format("Point::Draw P({0},{1})", x, y));
+            Console.WriteLine("   Point::Draw: P({0},{1}).", x, y);
         }
     }
         
@@ -70,8 +70,7 @@ namespace OOPlab3
         //  "Draw"
         public override void Draw()
         {
-            Console.WriteLine(string.Format("Circle::Draw O({0},{1}); radius = {2}", 
-                center.x, center.y, radius));
+            Console.WriteLine("  Circle::Draw: O({0},{1}); radius = {2}.", center.x, center.y, radius);
         }
     }
 
@@ -110,9 +109,9 @@ namespace OOPlab3
         //  "Draw"
         public override void Draw()
         {
-            Console.WriteLine(string.Format(
-                "Triangle::Draw: A({0},{1}); B({2},{3}); C({4},{5});",
-                a.x, a.y, b.x, b.y, c.x, c.y)
+            Console.WriteLine(
+                "Triangle::Draw: A({0},{1}); B({2},{3}); C({4},{5}).",
+                a.x, a.y, b.x, b.y, c.x, c.y
                 );
         }
     }
@@ -130,6 +129,14 @@ namespace OOPlab3
             prev = null;
             next = null;
         }
+
+        //  destructor
+        //~DoublyNode()
+        //{
+        //    shape = null;
+        //    prev = null;
+        //    next = null;
+        //}
 
         public AbsShape Shape => shape;
     }
@@ -160,6 +167,7 @@ namespace OOPlab3
             {
                 tail.next = fresh;
                 fresh.prev = tail;
+                tail = fresh;
             }
             else
             {
@@ -181,12 +189,14 @@ namespace OOPlab3
             {
                 head.prev = fresh;
                 fresh.next = head;
+                head = fresh;
             }
             else
             {
                 tail = fresh;
                 head = fresh;
             }
+            current = fresh;
             ++count;
             return true;
         }
@@ -268,7 +278,7 @@ namespace OOPlab3
         {
             if (head == null)
             return false;
-            current = head;
+            Set_current(head);
             return true;
         }
 
@@ -277,11 +287,36 @@ namespace OOPlab3
         {
             if (tail == null)
                 return false;
-            current = tail;
+            Set_current(tail);
             return true;
         }
 
+        //  unnecessary method: set current to given node
+        private bool Set_current(DoublyNode node)
+        {
+            if (node == null)
+                return false;
+            current.next = node.next;
+            current.prev = node.prev;
+            current = node;
+            return true;
+        }
+        
+        //  no need to describe
+        private AbsShape Get_current_shape()
+        {
+            if (current == null)
+                return null;
+            return current.Shape;
+        }
 
+        //  Check if list is empty
+        public bool Is_empty()
+        {
+            if (count == 0)
+                return true;
+            return false;
+        }
 
         public DoublyNode Current => current;
     }
@@ -294,45 +329,85 @@ namespace OOPlab3
             DoublyLinkedList shapes = new DoublyLinkedList();
             Random r = new Random();
             AbsShape sh = null;
-            const int n = 10;
+            const int n = 5;
+            const int h = 11;
+            const int l = -9;
+            System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
+            timer.Start();
             for (int i = 0; i < n; ++i)
             {
                 int type = r.Next(0, 3);
                 if (type == 0)
                 {
-                    int x = r.Next(-9, 11);
-                    int y = r.Next(-9, 11);
+                    int x = r.Next(l, h);
+                    int y = r.Next(l, h);
                     sh = new Point(x, y);
                 }
                 else if (type == 1)
                 {
-                    int x = r.Next(-9, 11);
-                    int y = r.Next(-9, 11);
-                    int radius = r.Next(-9, 11);
+                    int x = r.Next(l, h);
+                    int y = r.Next(l, h);
+                    int radius = r.Next(l, h);
                     sh = new Circle(x, y, radius);
                 }
                 else if (type == 2)
                 {
-                    int ax = r.Next(-9, 11);
-                    int ay = r.Next(-9, 11);
-                    int bx = r.Next(-9, 11);
-                    int by = r.Next(-9, 11);
-                    int cx = r.Next(-9, 11);
-                    int cy = r.Next(-9, 11);
+                    int ax = r.Next(l, h);
+                    int ay = r.Next(l, h);
+                    int bx = r.Next(l, h);
+                    int by = r.Next(l, h);
+                    int cx = r.Next(l, h);
+                    int cy = r.Next(l, h);
                     sh = new Triangle(ax, ay, bx, by, cx, cy);
                 }
                 shapes.Push_back(sh);
-                Console.Write("{0}) ", i);
-                shapes.Current.Shape.Draw();
+                //shapes.Current.Shape.Draw();
             }
-            Console.WriteLine("\n");
-            shapes.Set_current_first();
-            bool t = true;
-            for (; t; t = shapes.Step_forward())
+            Console.WriteLine();
+            for (int i = 0; i < n; ++i)
             {
-                shapes.Current.Shape.Draw();
-            }        
+                int type = r.Next(0, 3);
+                if (type == 0)
+                {
+                    int x = r.Next(l, h);
+                    int y = r.Next(l, h);
+                    sh = new Point(x, y);
+                }
+                else if (type == 1)
+                {
+                    int x = r.Next(l, h);
+                    int y = r.Next(l, h);
+                    int radius = r.Next(l, h);
+                    sh = new Circle(x, y, radius);
+                }
+                else if (type == 2)
+                {
+                    int ax = r.Next(l, h);
+                    int ay = r.Next(l, h);
+                    int bx = r.Next(l, h);
+                    int by = r.Next(l, h);
+                    int cx = r.Next(l, h);
+                    int cy = r.Next(l, h);
+                    sh = new Triangle(ax, ay, bx, by, cx, cy);
+                }
+                shapes.Push_front(sh);
+                //shapes.Current.Shape.Draw();
+            }
+            timer.Stop();
+            TimeSpan ts = timer.Elapsed;
+            Console.WriteLine("\nTime spent to create and initialize the list: {0}.{1} seconds", 
+                ts.Seconds, ts.Milliseconds);
             Console.Read();
+            shapes.Draw_whole_list();
+
+            for (; !shapes.Is_empty(); )
+            {
+                shapes.Delete_first();
+                shapes.Delete_last();
+                Console.WriteLine();
+                shapes.Draw_whole_list();
+            }
+            Console.ReadKey();
         }
     }
 }
