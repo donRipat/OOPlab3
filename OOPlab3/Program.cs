@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OOPlab3
 {
@@ -10,7 +6,7 @@ namespace OOPlab3
     {
         public abstract void Draw();
     }
-
+    
     class Point: AbsShape
     {
         public int x;
@@ -27,7 +23,7 @@ namespace OOPlab3
             this.x = x;
             this.y = y;
         }
-        public Point(ref Point p)
+        public Point(Point p)
         {
             x = p.x;
             y = p.y;
@@ -51,9 +47,9 @@ namespace OOPlab3
             center = new Point();
             radius = 0;
         }
-        public Circle(ref Point center, int radius)
+        public Circle(Point center, int radius)
         {
-            this.center = new Point(ref center);
+            this.center = new Point(center);
             this.radius = Math.Abs(radius);
         }
         public Circle(int x, int y, int radius)
@@ -61,16 +57,17 @@ namespace OOPlab3
             center = new Point(x, y);
             this.radius = Math.Abs(radius);
         }
-        public Circle(ref Circle c)
+        public Circle(Circle c)
         {
-            center = new Point(ref c.center);
+            center = new Point(c.center);
             radius = c.radius;
         }
 
         //  "Draw"
         public override void Draw()
         {
-            Console.WriteLine("  Circle::Draw: O({0},{1}); radius = {2}.", center.x, center.y, radius);
+            Console.WriteLine("  Circle::Draw: O({0},{1}); radius = {2}.",
+                center.x, center.y, radius);
         }
     }
 
@@ -87,17 +84,17 @@ namespace OOPlab3
             b = new Point();
             c = new Point();
         }
-        public Triangle(ref Point a, ref Point b, ref Point c)
+        public Triangle(Point a, Point b, Point c)
         {
-            this.a = new Point(ref a);
-            this.b = new Point(ref b);
-            this.c = new Point(ref c);
+            this.a = new Point(a);
+            this.b = new Point(b);
+            this.c = new Point(c);
         }
         public Triangle(ref Triangle t)
         {
-            a = new Point(ref t.a);
-            b = new Point(ref t.b);
-            c = new Point(ref t.c);
+            a = new Point(t.a);
+            b = new Point(t.b);
+            c = new Point(t.c);
         }
         public Triangle(int ax, int ay, int bx, int by, int cx, int cy)
         {
@@ -130,15 +127,7 @@ namespace OOPlab3
             next = null;
         }
 
-        //  destructor
-        //~DoublyNode()
-        //{
-        //    shape = null;
-        //    prev = null;
-        //    next = null;
-        //}
-
-        public AbsShape Shape => shape;
+        public AbsShape Shape { get => shape; }
     }
 
     class DoublyLinkedList
@@ -165,8 +154,8 @@ namespace OOPlab3
             DoublyNode fresh = new DoublyNode(shape);
             if (count > 0)
             {
-                tail.next = fresh;
                 fresh.prev = tail;
+                tail.next = fresh;
                 tail = fresh;
             }
             else
@@ -268,7 +257,8 @@ namespace OOPlab3
         {
             if (count == 0)
                 return false;
-            for (current = head; current != null; current = current.next)
+            current = head;
+            for (bool cond = true; cond; cond = Step_forward())
                 current.Shape.Draw();
             return true;
         }
@@ -278,7 +268,7 @@ namespace OOPlab3
         {
             if (head == null)
             return false;
-            Set_current(head);
+            current = head;
             return true;
         }
 
@@ -287,23 +277,12 @@ namespace OOPlab3
         {
             if (tail == null)
                 return false;
-            Set_current(tail);
-            return true;
-        }
-
-        //  unnecessary method: set current to given node
-        private bool Set_current(DoublyNode node)
-        {
-            if (node == null)
-                return false;
-            current.next = node.next;
-            current.prev = node.prev;
-            current = node;
+            current = tail;
             return true;
         }
         
         //  no need to describe
-        private AbsShape Get_current_shape()
+        public AbsShape Get_current_shape()
         {
             if (current == null)
                 return null;
@@ -318,7 +297,21 @@ namespace OOPlab3
             return false;
         }
 
-        public DoublyNode Current => current;
+        //  Search given shape and set current to it if found
+        public bool Search(AbsShape s)
+        {
+            DoublyNode t = current;
+            for (bool cond = (!Is_empty()); cond; Step_forward())
+                if (Current.Shape == s)
+                    return true;
+            current = t;
+            return false;
+        }
+
+        public int Count { get => count; }
+        public DoublyNode Current { get => current; }
+        public DoublyNode Head { get => head; }
+        public DoublyNode Tail { get => tail; }
     }
 
 
@@ -329,11 +322,13 @@ namespace OOPlab3
             DoublyLinkedList shapes = new DoublyLinkedList();
             Random r = new Random();
             AbsShape sh = null;
-            const int n = 5;
+            const int n = 100;
             const int h = 11;
             const int l = -9;
+
+            //  Creating new objects and adding them in list
             System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
-            timer.Start();
+            timer.Start();  
             for (int i = 0; i < n; ++i)
             {
                 int type = r.Next(0, 3);
@@ -360,46 +355,53 @@ namespace OOPlab3
                     int cy = r.Next(l, h);
                     sh = new Triangle(ax, ay, bx, by, cx, cy);
                 }
-                shapes.Push_back(sh);
-                //shapes.Current.Shape.Draw();
+                if (i < n / 2)
+                    shapes.Push_back(sh);
+                else
+                    shapes.Push_front(sh);
+                shapes.Current.Shape.Draw();
             }
             Console.WriteLine();
-            for (int i = 0; i < n; ++i)
-            {
-                int type = r.Next(0, 3);
-                if (type == 0)
-                {
-                    int x = r.Next(l, h);
-                    int y = r.Next(l, h);
-                    sh = new Point(x, y);
-                }
-                else if (type == 1)
-                {
-                    int x = r.Next(l, h);
-                    int y = r.Next(l, h);
-                    int radius = r.Next(l, h);
-                    sh = new Circle(x, y, radius);
-                }
-                else if (type == 2)
-                {
-                    int ax = r.Next(l, h);
-                    int ay = r.Next(l, h);
-                    int bx = r.Next(l, h);
-                    int by = r.Next(l, h);
-                    int cx = r.Next(l, h);
-                    int cy = r.Next(l, h);
-                    sh = new Triangle(ax, ay, bx, by, cx, cy);
-                }
-                shapes.Push_front(sh);
-                //shapes.Current.Shape.Draw();
-            }
             timer.Stop();
             TimeSpan ts = timer.Elapsed;
-            Console.WriteLine("\nTime spent to create and initialize the list: {0}.{1} seconds", 
-                ts.Seconds, ts.Milliseconds);
-            Console.Read();
+            Console.WriteLine("Time spent to create and initialize the list: " +
+                "{0:00}.{1:000} seconds\n", ts.Seconds, ts.Milliseconds);
+
+            //  walking through the whole  list twice
+            timer = new System.Diagnostics.Stopwatch();
+            timer.Start();  
+
+            //  walking through whole list from head to tail
+            shapes.Set_current_first();
+            for (bool cond = (!shapes.Is_empty()); cond; cond = shapes.Step_forward())
+                shapes.Current.Shape.Draw();
+
+            Console.WriteLine();
+
+            //  walking through whole list from tail to head
+            shapes.Set_current_last();
+            for (bool cond = (!shapes.Is_empty()); cond; cond = shapes.Step_back())
+                shapes.Current.Shape.Draw();
+
+            timer.Stop();
+            ts = timer.Elapsed;
+            Console.WriteLine("\nTime spent to walk through and draw the whole list: " +
+                "{0:00}.{1:000} seconds\n", ts.Seconds, ts.Milliseconds);
+
+            //  Calling method for all objects
+            timer = new System.Diagnostics.Stopwatch();
+            timer.Start();  
+
             shapes.Draw_whole_list();
 
+            timer.Stop();
+            ts = timer.Elapsed;
+            Console.WriteLine("\nTime spent to draw the whole list: " +
+                "{0:00}.{1:000} seconds", ts.Seconds, ts.Milliseconds);
+            
+            //  Deleting the list node by node
+            timer = new System.Diagnostics.Stopwatch();
+            timer.Start();
             for (; !shapes.Is_empty(); )
             {
                 shapes.Delete_first();
@@ -407,7 +409,13 @@ namespace OOPlab3
                 Console.WriteLine();
                 shapes.Draw_whole_list();
             }
-            Console.ReadKey();
+
+            timer.Stop();
+            ts = timer.Elapsed;
+            Console.WriteLine("\nTime spent to delete the list node by node: " +
+                "{0:00}.{1:000} seconds", ts.Seconds, ts.Milliseconds);
+            Console.WriteLine("\nList contained {0} nodes\nThe program was finished.", n);
+            Console.Read();
         }
     }
 }
